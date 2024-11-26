@@ -99,6 +99,11 @@ class BuyMeACoffeeAnalyzer:
         if not self.all_supporters:
             self.fetch_all_pages()
 
+        if not self.all_supporters:
+            return {
+                "Failed": "No supporters found"
+            }
+
         try:
             # Convert timestamps to datetime objects
             for supporter in self.all_supporters:

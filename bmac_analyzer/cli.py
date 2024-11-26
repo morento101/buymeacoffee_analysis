@@ -99,6 +99,10 @@ def clear_all():
 
 def _display_stats_tables(stats: dict, creator_id: str, coffee_price: float):
     """Display statistics in formatted tables"""
+    if "Failed" in stats:
+        console.print(f"[bold red]{stats['Failed']}")
+        return
+
     # Summary Table
     summary_table = Table(title=f"📊 Statistics for {creator_id}", show_header=True)
     summary_table.add_column("Metric", style="cyan")

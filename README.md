@@ -2,7 +2,7 @@
 
 A command-line tool for analyzing creator statistics from Buy Me a Coffee profiles. Get insights into supporter patterns, coffee contributions, and temporal trends for any Buy Me a Coffee creator.
 
-![CLI Demo](demo.gif)
+![CLI Demo](media/img.png)
 
 ## Features
 
