@@ -1,100 +1,152 @@
 # Buy Me a Coffee Creator Stats Analyzer
 
-A Python tool for analyzing creator statistics from Buy Me a Coffee profiles. This tool provides comprehensive insights into supporter patterns, coffee contributions, and temporal trends for any Buy Me a Coffee creator.
+A command-line tool for analyzing creator statistics from Buy Me a Coffee profiles. Get insights into supporter patterns, coffee contributions, and temporal trends for any Buy Me a Coffee creator.
+
+![CLI Demo](demo.gif)
 
 ## Features
 
+- 🖥️ Easy-to-use command-line interface
 - 📊 Comprehensive statistics gathering
 - 📈 Temporal analysis of support patterns
-- 💬 Message and engagement analysis
-- 📅 Monthly trend analysis
+- 💾 Smart caching system for faster repeated queries
+- 🎨 Beautiful terminal output with rich formatting
+- 📝 Multiple output formats (table/JSON)
 - 🔄 Automatic pagination handling
 
 ## Installation
 
-1. Clone this repository:
+### From Source
 ```bash
+# Clone the repository
 git clone https://github.com/yourusername/buymeacoffee-analyzer.git
 cd buymeacoffee-analyzer
-```
 
-2. Create a virtual environment (recommended):
-```bash
+# Create and activate virtual environment (recommended)
 python -m venv venv
 source venv/bin/activate  # On Windows use: venv\Scripts\activate
+
+# Install the package
+pip install -e .
 ```
 
-3. Install dependencies:
+### From PyPI (Coming Soon)
 ```bash
-pip install -r requirements.txt
+pip install bmac-analyzer
 ```
 
 ## Usage
 
-### Basic Usage
+### Quick Start
+```bash
+# Get stats for a creator
+bmac stats kqlsearch
 
-```python
-from bmac_analyzer import BuyMeACoffeeAnalyzer
+# Get JSON output
+bmac stats kqlsearch --format json
 
-# Initialize analyzer with creator ID
-analyzer = BuyMeACoffeeAnalyzer("creator-id")
-
-# Get comprehensive stats
-stats = analyzer.analyze_stats()
-
-# Access specific metrics
-print(f"Total Supporters: {stats['summary']['total_supporters']}")
-print(f"Total Coffees: {stats['summary']['total_coffees']}")
+# Force fresh data fetch
+bmac stats kqlsearch --no-cache
 ```
 
-### Output Example
+### Available Commands
 
-The analyzer provides statistics in the following categories:
+#### `bmac stats`
+Get statistics for a Buy Me a Coffee creator
+```bash
+# Basic usage
+bmac stats <creator-id>
 
-1. Summary Statistics:
-   - Total supporters
-   - Total coffees received
-   - Average coffees per supporter
-   - First and last support dates
-   - Days active
+# Options
+--format, -f [table|json]  # Output format (default: table)
+--no-cache                 # Bypass cache and fetch fresh data
+```
 
-2. Support Patterns:
-   - Distribution of coffee quantities
-   - Message engagement rates
-   - Creator supporter count
+#### `bmac cache`
+Manage cache for a specific creator
+```bash
+# View cache info
+bmac cache <creator-id>
 
-3. Monthly Trends:
-   - Best and worst performing months
-   - Monthly averages
-   - Support frequency patterns
+# Clear cache for creator
+bmac cache <creator-id> --clear
+```
+
+#### `bmac clear-all`
+Clear all cached data
+```bash
+bmac clear-all
+```
+
+### Example Output
+
+```
+📊 Statistics for kqlsearch
+┏━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┓
+┃ Metric                ┃ Value         ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━┩
+│ Total Supporters      │ 42           │
+│ Total Coffees         │ 87           │
+│ Average Per Supporter │ 2.07         │
+│ First Support         │ 2024-01-23   │
+│ Last Support          │ 2024-10-20   │
+│ Days Active          │ 271          │
+└────────────────────────┴───────────────┘
+...
+```
+
+## Cache System
+
+The tool includes a smart caching system to improve performance and reduce API calls:
+
+- Cache Location: `~/.bmac-cache/`
+- Default TTL: 1 hour
+- Automatic cache invalidation
+- Cache management commands
+
+### Cache Management
+```bash
+# Check cache status for a creator
+bmac cache kqlsearch
+
+# Clear specific creator's cache
+bmac cache kqlsearch --clear
+
+# Clear all cached data
+bmac clear-all
+```
 
 ## Data Structure
 
-The tool returns a dictionary with the following structure:
+The tool returns data in the following structure:
 
-```python
+```json
 {
     "summary": {
         "total_supporters": int,
         "total_coffees": int,
         "average_coffees_per_supporter": float,
-        "first_support": str,
-        "last_support": str,
+        "first_support": "YYYY-MM-DD",
+        "last_support": "YYYY-MM-DD",
         "days_active": int
     },
     "support_patterns": {
-        "coffee_distribution": dict,
+        "coffee_distribution": {
+            "1": int,
+            "2": int,
+            "3": int
+        },
         "supporters_with_messages": int,
-        "message_rate": str,
+        "message_rate": "XX.X%",
         "creator_supporters": int
     },
     "monthly_trends": {
         "best_month": {
-            "date": str,
+            "date": "YYYY-MM",
             "coffees": int
         },
         "worst_month": {
-            "date": str,
+            "date": "YYYY-MM",
             "coffees": int
         },
         "monthly_averages": {
@@ -105,23 +157,57 @@ The tool returns a dictionary with the following structure:
 }
 ```
 
+## Configuration
+
+The tool uses these default settings:
+- Cache TTL: 3600 seconds (1 hour)
+- Cache Location: `~/.bmac-cache/`
+- Output Format: table
+- Page Size: 10 items
+
+## Development
+
+### Project Structure
+```
+buymeacoffee_analysis/
+├── README.md
+├── requirements.txt
+├── setup.py
+└── bmac_analyzer/
+    ├── __init__.py
+    ├── analyzer.py
+    └── cli.py
+```
+
+### Setting Up Development Environment
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/buymeacoffee-analyzer.git
+cd buymeacoffee-analyzer
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate
+
+# Install in development mode
+pip install -e .
+```
+
 ## Contributing
 
-Contributions are welcome! Here are some ways you can contribute:
+Contributions are welcome! Here's how you can help:
 
-1. Report bugs
-2. Suggest new features
-3. Submit pull requests
-4. Improve documentation
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
 
-## Future Enhancements
-
-- [ ] Sentiment analysis of supporter messages
-- [ ] Data visualization capabilities
-- [ ] Export functionality (CSV/Excel)
-- [ ] Day/time pattern analysis
-- [ ] API rate limiting and caching
-- [ ] Command-line interface
+### Areas for Improvement
+- Add unit tests
+- Implement data visualization features
+- Add export functionality
+- Enhance error handling
+- Add configuration file support
 
 ## License
 
@@ -135,9 +221,17 @@ This tool is not officially affiliated with Buy Me a Coffee. It uses their publi
 
 If you find this tool useful, consider:
 
-- Star the repository
-- Report issues
-- Contribute to the codebase
-- Share with others who might find it helpful
+- ⭐ Star the repository
+- 🐛 Report issues
+- 🤝 Contribute to the codebase
+- 📢 Share with others
+
+## Credits
+
+Created with ❤️ using:
+- [Click](https://click.palletsprojects.com/)
+- [Rich](https://rich.readthedocs.io/)
+- [Pandas](https://pandas.pydata.org/)
+- [Requests](https://requests.readthedocs.io/)
 
 For questions or support, please open an issue in the GitHub repository.
