@@ -11,6 +11,11 @@ from .analyzer import BuyMeACoffeeAnalyzer
 console = Console()
 
 
+def format_currency(amount: float) -> str:
+    """Format amount as currency"""
+    return f"${amount:,.2f}"
+
+
 def get_cache_dir() -> Path:
     """Get the cache directory path and create it if it doesn't exist."""
     cache_dir = Path.home() / ".bmac-cache"
@@ -30,17 +35,19 @@ def cli():
 @click.option("--no-cache", is_flag=True, help="Bypass cache and fetch fresh data")
 @click.option("--format", "-f", type=click.Choice(["table", "json"]), default="table",
               help="Output format (table or json)")
-def stats(creator_id: str, no_cache: bool, format: str):
+@click.option("--coffee-price", "-p", type=float, default=5.0,
+              help="Price per coffee in USD (default: $5.00)")
+def stats(creator_id: str, no_cache: bool, format: str, coffee_price: float):
     """Get statistics for a Buy Me a Coffee creator"""
     try:
         with console.status(f"[bold green]Analyzing stats for {creator_id}..."):
             analyzer = BuyMeACoffeeAnalyzer(creator_id, use_cache=not no_cache)
-            stats = analyzer.analyze_stats()
+            stats = analyzer.analyze_stats(coffee_price=coffee_price)
 
         if format == "json":
             click.echo(json.dumps(stats, indent=2))
         else:
-            _display_stats_table(stats, creator_id)
+            _display_stats_tables(stats, creator_id, coffee_price)
 
     except Exception as e:
         console.print(f"[bold red]Error: {str(e)}")
@@ -90,54 +97,75 @@ def clear_all():
     console.print("[green]All cache cleared successfully")
 
 
-def _display_stats_table(stats: dict, creator_id: str):
-    """Display statistics in a formatted table"""
+def _display_stats_tables(stats: dict, creator_id: str, coffee_price: float):
+    """Display statistics in formatted tables"""
     # Summary Table
-    summary_table = Table(title=f"📊 Statistics for {creator_id}", show_header=False)
+    summary_table = Table(title=f"📊 Statistics for {creator_id}", show_header=True)
     summary_table.add_column("Metric", style="cyan")
-    summary_table.add_column("Value", style="green")
+    summary_table.add_column("Value", style="green", justify="right")
 
-    for key, value in stats["summary"].items():
-        summary_table.add_row(
-            key.replace("_", " ").title(),
-            str(value)
-        )
+    summary = stats["summary"]
+    summary_table.add_row("Total Supporters", str(summary["total_supporters"]))
+    summary_table.add_row("Total Coffees", str(summary["total_coffees"]))
+    summary_table.add_row("Total Earnings", format_currency(summary["total_earnings"]))
+    summary_table.add_row("Avg Coffees/Supporter", f"{summary['average_coffees_per_supporter']:.2f}")
+    summary_table.add_row("Avg Earnings/Supporter", format_currency(summary["average_earnings_per_supporter"]))
+    summary_table.add_row("First Support", summary["first_support"])
+    summary_table.add_row("Last Support", summary["last_support"])
+    summary_table.add_row("Days Active", str(summary["days_active"]))
+
     console.print(summary_table)
+    console.print()
 
     # Support Patterns Table
-    patterns_table = Table(title="👥 Support Patterns", show_header=False)
-    patterns_table.add_column("Metric", style="cyan")
-    patterns_table.add_column("Value", style="green")
+    patterns_table = Table(title="👥 Support Patterns", show_header=True)
+    patterns_table.add_column("Type", style="cyan")
+    patterns_table.add_column("Count", style="green", justify="right")
 
-    for key, value in stats["support_patterns"].items():
+    patterns = stats["support_patterns"]
+    for coffees, count in patterns["coffee_distribution"].items():
+        total_amount = int(coffees) * coffee_price * count
         patterns_table.add_row(
-            key.replace("_", " ").title(),
-            str(value)
+            f"{coffees} Coffee{'s' if int(coffees) > 1 else ''}",
+            f"{count} ({format_currency(total_amount)})"
         )
+
+    patterns_table.add_row("With Messages", str(patterns["supporters_with_messages"]))
+    patterns_table.add_row("Message Rate", patterns["message_rate"])
+    patterns_table.add_row("Creator Supporters", str(patterns["creator_supporters"]))
+
     console.print(patterns_table)
+    console.print()
 
     # Monthly Trends Table
-    trends_table = Table(title="📈 Monthly Trends", show_header=False)
-    trends_table.add_column("Metric", style="cyan")
-    trends_table.add_column("Value", style="green")
+    trends_table = Table(title="📈 Monthly Trends", show_header=True)
+    trends_table.add_column("Period", style="cyan")
+    trends_table.add_column("Coffees", style="green", justify="right")
+    trends_table.add_column("Earnings", style="green", justify="right")
 
     trends = stats["monthly_trends"]
+
+    # Best Month
     trends_table.add_row(
-        "Best Month",
-        f"{trends['best_month']['date']} ({trends['best_month']['coffees']} coffees)"
+        f"Best Month ({trends['best_month']['date']})",
+        str(trends['best_month']['coffees']),
+        format_currency(trends['best_month']['earnings'])
     )
+
+    # Worst Month
     trends_table.add_row(
-        "Worst Month",
-        f"{trends['worst_month']['date']} ({trends['worst_month']['coffees']} coffees)"
+        f"Worst Month ({trends['worst_month']['date']})",
+        str(trends['worst_month']['coffees']),
+        format_currency(trends['worst_month']['earnings'])
     )
+
+    # Monthly Averages
     trends_table.add_row(
-        "Average Monthly Supporters",
-        f"{trends['monthly_averages']['supporters']:.1f}"
+        "Monthly Average",
+        f"{trends['monthly_averages']['coffees']:.1f}",
+        format_currency(trends['monthly_averages']['earnings'])
     )
-    trends_table.add_row(
-        "Average Monthly Coffees",
-        f"{trends['monthly_averages']['coffees']:.1f}"
-    )
+
     console.print(trends_table)
 
 

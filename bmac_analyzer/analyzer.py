@@ -89,8 +89,13 @@ class BuyMeACoffeeAnalyzer:
 
         return self.all_supporters
 
-    def analyze_stats(self) -> Dict[str, Any]:
-        """Analyze supporter statistics"""
+    def analyze_stats(self, coffee_price: float = 5.0) -> Dict[str, Any]:
+        """
+        Analyze supporter statistics
+
+        Args:
+            coffee_price: Price per coffee in USD (default: $5.00)
+        """
         if not self.all_supporters:
             self.fetch_all_pages()
 
@@ -134,11 +139,23 @@ class BuyMeACoffeeAnalyzer:
             best_month = monthly_stats['coffees'].idxmax()
             worst_month = monthly_stats['coffees'].idxmin()
 
+            # Calculate financial metrics
+            total_earnings = total_coffees * coffee_price
+            monthly_earnings = df.groupby(df['support_created_on'].dt.strftime('%Y-%m')).agg({
+                'support_coffees': lambda x: sum(x) * coffee_price
+            })
+
+            best_earning_month = monthly_earnings['support_coffees'].idxmax()
+            worst_earning_month = monthly_earnings['support_coffees'].idxmin()
+            avg_monthly_earnings = monthly_earnings['support_coffees'].mean()
+
             return {
                 "summary": {
                     "total_supporters": total_supporters,
                     "total_coffees": total_coffees,
+                    "total_earnings": round(total_earnings, 2),
                     "average_coffees_per_supporter": round(total_coffees / total_supporters, 2),
+                    "average_earnings_per_supporter": round(total_earnings / total_supporters, 2),
                     "first_support": first_support.strftime('%Y-%m-%d'),
                     "last_support": last_support.strftime('%Y-%m-%d'),
                     "days_active": (last_support - first_support).days
@@ -152,15 +169,18 @@ class BuyMeACoffeeAnalyzer:
                 "monthly_trends": {
                     "best_month": {
                         "date": best_month,
-                        "coffees": monthly_stats.loc[best_month, 'coffees']
+                        "coffees": monthly_stats.loc[best_month, 'coffees'],
+                        "earnings": round(monthly_stats.loc[best_month, 'coffees'] * coffee_price, 2)
                     },
                     "worst_month": {
                         "date": worst_month,
-                        "coffees": monthly_stats.loc[worst_month, 'coffees']
+                        "coffees": monthly_stats.loc[worst_month, 'coffees'],
+                        "earnings": round(monthly_stats.loc[worst_month, 'coffees'] * coffee_price, 2)
                     },
                     "monthly_averages": {
                         "supporters": monthly_stats['supporters'].mean(),
-                        "coffees": monthly_stats['coffees'].mean()
+                        "coffees": monthly_stats['coffees'].mean(),
+                        "earnings": round(monthly_stats['coffees'].mean() * coffee_price, 2)
                     }
                 }
             }
