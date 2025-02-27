@@ -12,6 +12,7 @@ setup(
         "typing-extensions>=4.8.0",
         "click>=8.1.7",
         "rich>=13.7.0",
+        "fake-useragent==2.0.3"
     ],
     entry_points={
         "console_scripts": [

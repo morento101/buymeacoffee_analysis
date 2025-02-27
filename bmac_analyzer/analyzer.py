@@ -6,6 +6,14 @@ from typing import Dict, List, Any, Optional
 import json
 from pathlib import Path
 import time
+from fake_useragent import UserAgent
+
+fake_useragent = UserAgent()
+
+proxies = {
+    'http': 'http://brd-customer-hl_e18026d4-zone-residential_proxy1:659bzpvhjw8c@brd.superproxy.io:33335',
+    'https': 'http://brd-customer-hl_e18026d4-zone-residential_proxy1:659bzpvhjw8c@brd.superproxy.io:33335'
+}
 
 
 class BuyMeACoffeeAnalyzer:
@@ -54,9 +62,12 @@ class BuyMeACoffeeAnalyzer:
             "page": page,
             "per_page": per_page
         }
+        headers = {
+            "User-Agent": fake_useragent.random
+        }
 
         try:
-            response = requests.get(url, params=params)
+            response = requests.get(url, params=params, headers=headers, proxies=proxies)
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
